@@ -4,6 +4,7 @@ import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
+import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
@@ -16,9 +17,9 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
-import javax.sound.midi.*;
 import java.io.IOException;
 import java.util.Random;
+import javax.sound.midi.*;
 
 class BinkBonkSound {
 
@@ -26,9 +27,11 @@ class BinkBonkSound {
     private static final int MIN_PITCH_BEND = 0;
     private static final int REVERB_LEVEL_CONTROLLER = 91;
     private static final int MIN_REVERB_LEVEL = 0;
+    private static final int MAX_REVERB_LEVEL = 127;
     private static final int DRUM_MIDI_CHANNEL = 9;
     private static final int CLAVES_NOTE = 76;
     private static final int NORMAL_VELOCITY = 100;
+    private static final int MAX_VELOCITY = 127;
 
     Instrument[] instrument;
     MidiChannel[] midiChannels;
@@ -49,7 +52,6 @@ class BinkBonkSound {
 
     void play(boolean hiPitch){
         if(playSound) {
-
             midiChannels[DRUM_MIDI_CHANNEL]
                     .setPitchBend(hiPitch ? MAX_PITCH_BEND : MIN_PITCH_BEND);
 
@@ -84,7 +86,6 @@ class Bat extends Rectangle {
         bat.setFill(c);
         bat.setTranslateX(p.getX());
         bat.setTranslateY(p.getY());
-
     }
 
     public void handleMouseMove(MouseEvent e) {
@@ -238,19 +239,19 @@ class Pong extends Group{
             double old = -1;
             double elapsedTime = 0;
             double speed = 0;
-            double accleration = 0.1;
+            double acceleration = 0.1;
             double initTime = 0;
             double rotationValue = 5;
             int difficulty = 5;
             boolean bouncedBack = false;
             double ft = 0;
             int rotation = 0;
-            Point2D lastBatPos = new Point2D(0,0);
-            Point2D lastBallPos = new Point2D(0,0);
+            Point2D lastBatPos = new Point2D(0, 0);
+            Point2D lastBallPos = new Point2D(0, 0);
 
             @Override
             public void handle(long now) {
-                if (old < 0) 
+                if (old < 0)
                     old = now;
                 double delta = (now - old) / 1e9;
 
@@ -269,7 +270,6 @@ class Pong extends Group{
                     gameTimer.remove(2);
                     gameTimer.update(elapsedTime, "GT (s)", 2);
                 }
-
                 if (now % (UPDATE_TIME / 2) == 0) {
                     lastBatPos = new Point2D(bat.getTranslateX(), 
                             bat.getTranslateY());
@@ -284,7 +284,7 @@ class Pong extends Group{
                 ball.setTranslateY(ball.getTranslateY() + gravity_y);
 
                 stuckBall();
-                batOutofBounds();
+                batOutOfBounds();
                 
                 if (collisionDetection(ball, bat)) {
                     System.out.println("touched bat!");
@@ -404,7 +404,7 @@ class Pong extends Group{
                 return false;
 
             }
-            private void batOutofBounds() {
+            private void batOutOfBounds() {
                 if (collide(bat, rightBounds) || collide(bat,leftBounds)) {
                     bat.setFill(Color.RED);
                 } else {
@@ -449,19 +449,14 @@ class Pong extends Group{
         bat.handleMouseMove(e);
     }
 
+    void handleSound() {
+        sound.toggleSound();
+    }
 }
 
 public class OPongApp extends Application {
 
     private static Scene scene;
-    private static final int GAME_HEIGHT = 600;
-    private static final int GAME_WIDTH = 400;
-    private static final int BAT_WIDTH = GAME_WIDTH / 3;
-    private static final int BAT_HEIGHT = GAME_HEIGHT / 25;
-    private static final int BALL_SIZE = 50;
-
-    private static final Color BAT_COLOR = Color.TEAL;
-    private static final Color BALL_COLOR = Color.BLUE;
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -492,8 +487,11 @@ public class OPongApp extends Application {
         scene.setOnMouseMoved(e -> root.handleMouseMove(e));
         scene.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.I) {
-                gameTimer.show();
+                root.handleFpsPaneShow();
+            } else if (e.getCode() == KeyCode.S) {
+                root.handleSound();
             }
+
         });
 
         primaryStage.setTitle("PONG!");
