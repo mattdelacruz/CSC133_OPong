@@ -143,9 +143,7 @@ class GameTimer extends HBox {
             showFlag = true;
         }
     }
-
 }
-
 class Ball extends Rectangle {
 
     Ball(Point2D pos, int width, int height, Color color) {
@@ -155,7 +153,6 @@ class Ball extends Rectangle {
     }
 
 }
-
 class Bat extends Rectangle {
 
     Bat(Point2D pos, int width, int height, Color color) {
@@ -164,7 +161,6 @@ class Bat extends Rectangle {
         setTranslateY(pos.getY());
     }
 }
-
 class Bounds extends Rectangle {
 
     Bounds(Point2D pos, int width, int height) {
@@ -360,6 +356,7 @@ class Pong extends Group {
                 ballW > bat.getTranslateX() &&
                 ballW < batW) {
                         ball.setTranslateY(ballH - bat.getHeight());
+                        ball.setTranslateX(ballW - bat.getTranslateX());
                 }
             }
 
