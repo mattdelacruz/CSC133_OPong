@@ -15,6 +15,8 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.scene.transform.Rotate;
+import javafx.scene.transform.Translate;
 import javafx.stage.Stage;
 import javax.sound.midi.*;
 import java.io.IOException;
@@ -65,6 +67,31 @@ class BinkBonkSound {
         playSound = !playSound;
     }
 }
+
+abstract class PhysicsObject {
+
+    Group root, transform;
+    Point2D pos;
+
+    PhysicsObject(Group parent, Point2D p) { 
+        root = new Group();
+        transform = new Group();
+        root.getChildren().add(transform);
+        parent.getChildren().add(root);
+
+        pos = p;
+
+    }
+
+    public void update(double degrees) {
+        transform.getTransforms().clear();
+        transform.getTransforms().addAll(
+            new Translate(pos.getX(), pos.getY()),
+            new Rotate(degrees)
+        );
+    }
+}
+
 
 class Bounds extends Rectangle {
 
