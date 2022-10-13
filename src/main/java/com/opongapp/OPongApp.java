@@ -187,6 +187,7 @@ class Pong extends Group {
     Ball ball;
     Bat bat;
     Bounds topBounds, leftBounds, rightBounds;
+
     GameTimer gameTimer = new GameTimer();
     ScoreDisplay scoreDisplay = new ScoreDisplay(GAME_WIDTH, GAME_WIDTH);
     Random r = new Random();
@@ -374,60 +375,51 @@ class Pong extends Group {
                 ball.setTranslateY(0);
 
             }
+
+            public void bounceWall(Point2D lastPos, double speed) {
+                if (lastPos.getX() > ball.getTranslateX()) {
+                    gravityX = Math.cos(Math.toRadians(BASE_ANGLE));
+                    gravityX += (BASE_SPEED + speed);
+                } else {
+                    gravityX = -Math.cos(Math.toRadians(BASE_ANGLE));
+                    gravityX += (-BASE_SPEED + (-speed));
+                }
+            }
+        
+            public void bounceBat(Point2D lastPos, double speed) {
+        
+                if (batVelocity == 0) {
+                    gravityX = Math.cos(Math.toRadians(90));
+                    gravityY += (BASE_SPEED + speed);
+                } else if (batVelocity < 0) {
+                    gravityX = Math.cos(Math.toRadians(BASE_ANGLE));
+                    gravityX += (BASE_SPEED + speed);
+                } else {
+                    gravityX = -Math.cos(Math.toRadians(BASE_ANGLE));
+                    gravityX += (-BASE_SPEED + (-speed));
+                }
+            }
+        
+            public boolean collide(Rectangle a, Rectangle b) {
+                if (a.getTranslateY() + a.getHeight() >= b.getTranslateY() &&
+                        a.getTranslateY() <= b.getTranslateY() + b.getHeight() &&
+                        a.getTranslateX() + a.getWidth() >= b.getTranslateX() &&
+                        a.getTranslateX() <= b.getTranslateX() + b.getWidth()) {
+                    return true;
+                }
+        
+                return false;
+            }
+        
+            public void addNewScore(int points) {
+                scoreDisplay.update(points);
+            }
+        
+            public void updateFpsDescription(double frames, String description, int pos) {
+                gameTimer.update(frames, description, pos);
+            }
         };
         loop.start();
-    }
-
-    public void bounceWall(Point2D lastPos, double speed) {
-        if (lastPos.getX() > ball.getTranslateX()) {
-            gravityX = Math.cos(Math.toRadians(BASE_ANGLE));
-            gravityX += (BASE_SPEED + speed);
-        } else {
-            gravityX = -Math.cos(Math.toRadians(BASE_ANGLE));
-            gravityX += (-BASE_SPEED + (-speed));
-        }
-    }
-
-    public void bounceBat(Point2D lastPos, double speed) {
-
-        if (batVelocity == 0) {
-            gravityX = Math.cos(Math.toRadians(90));
-            gravityY += (BASE_SPEED + speed);
-        } else if (batVelocity < 0) {
-            gravityX = Math.cos(Math.toRadians(BASE_ANGLE));
-            gravityX += (BASE_SPEED + speed);
-        } else {
-            gravityX = -Math.cos(Math.toRadians(BASE_ANGLE));
-            gravityX += (-BASE_SPEED + (-speed));
-        }
-    }
-
-    public Rectangle createBat(int w, int h, Color c) {
-        Rectangle r = new Rectangle(w, h);
-        r.setTranslateX(GAME_WIDTH / 30);
-        r.setTranslateY(GAME_HEIGHT - h);
-        r.setFill(c);
-
-        return r;
-    }
-
-    public boolean collide(Rectangle a, Rectangle b) {
-        if (a.getTranslateY() + a.getHeight() >= b.getTranslateY() &&
-                a.getTranslateY() <= b.getTranslateY() + b.getHeight() &&
-                a.getTranslateX() + a.getWidth() >= b.getTranslateX() &&
-                a.getTranslateX() <= b.getTranslateX() + b.getWidth()) {
-            return true;
-        }
-
-        return false;
-    }
-
-    public void addNewScore(int points) {
-        scoreDisplay.update(points);
-    }
-
-    public void updateFpsDescription(double frames, String description, int pos) {
-        gameTimer.update(frames, description, pos);
     }
 
     void handleMouseMove(MouseEvent e) {
