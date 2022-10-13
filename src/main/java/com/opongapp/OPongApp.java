@@ -72,24 +72,20 @@ class ScoreDisplay extends Pane {
     private static final Color SCORE_FONT_COLOR = Color.BLUE;
 
     ScoreDisplay(int displayW, int displayH) {  
-
         setTranslateX(displayW / 2 - SCORE_FONT_SIZE / 2);
         setTranslateY(displayH / 2 - SCORE_FONT_SIZE / 2);
         update(0);
     }
 
     void update(int score) {
-
         if (!getChildren().isEmpty())
             getChildren().remove(0);
 
-        Label l = createLabel(Integer.toString(score));
-        getChildren().add(l);
+        getChildren().add(createLabel(Integer.toString(score)));
     
     }
 
     Label createLabel(String score) {
-
         Label l = new Label(score);
         l.setTextFill(SCORE_FONT_COLOR);
         l.setFont(Font.font("Arial", SCORE_FONT_WEIGHT, SCORE_FONT_SIZE));
@@ -112,17 +108,16 @@ class GameTimer extends HBox {
         l1 = new Label("");
         l2 = new Label("");
         l3 = new Label("");
+
         setTranslateX(0);
         setTranslateY(-1000);
         getChildren().addAll(l1, l2, l3);
     }
 
     void update(double info, String desc, int pos) {
-
         getChildren().remove(pos);
         String s = String.format(String.format("%.2f ", info) + desc);
-        Label label = createLabel(s);
-        Pane pane = new Pane(label);
+        Pane pane = new Pane(createLabel(s));
         getChildren().add(pos, pane);
         setMargin(getChildren().get(pos), MARGINS);
     }
@@ -145,16 +140,13 @@ class GameTimer extends HBox {
     }
 }
 class Ball extends Rectangle {
-
     Ball(Point2D pos, int width, int height, Color color) {
         super(width, height, color);
         setTranslateX(pos.getX());
         setTranslateY(pos.getY());
     }
-
 }
 class Bat extends Rectangle {
-
     Bat(Point2D pos, int width, int height, Color color) {
         super(width, height, color);     
         setTranslateX(pos.getX());
@@ -162,7 +154,6 @@ class Bat extends Rectangle {
     }
 }
 class Bounds extends Rectangle {
-
     Bounds(Point2D pos, int width, int height) {
         super(width, height);
         setTranslateX(pos.getX());
@@ -175,12 +166,12 @@ class Pong extends Group {
     public static final int GAME_WIDTH = 400;
     public static final int BAT_WIDTH = GAME_WIDTH / 3;
     public static final int BAT_HEIGHT = GAME_HEIGHT / 25;
-    public static final int MIN_BAT_WIDTH = 5;
     public static final int BALL_SIZE = GAME_WIDTH / 10;
     public static final int BASE_SPEED = 4;
     public static final int BASE_ANGLE = 5;
-    public static final int UPDATE_TIME = 2500;
-    public static final int BAT_REDUCTION_VALUE = 2;
+    public static final int UPDATE_TIME = 1500;
+    public static final int BAT_REDUCTION_VALUE = BAT_WIDTH / 50;
+    public static final int MIN_BAT_WIDTH = BAT_REDUCTION_VALUE;
     public static final Color BAT_COLOR = Color.TEAL;
     public static final Color BALL_COLOR = Color.BLUE;
 
@@ -202,7 +193,8 @@ class Pong extends Group {
     int points = 0;    
 
     public Pong() {
-        ball = new Ball(new Point2D(r.nextInt(GAME_WIDTH - BALL_SIZE),0), BALL_SIZE, BALL_SIZE, BALL_COLOR);
+        ball = new Ball(new Point2D(r.nextInt(GAME_WIDTH - BALL_SIZE),0),
+                BALL_SIZE, BALL_SIZE, BALL_COLOR);
         bat = new Bat(new Point2D(0, GAME_HEIGHT - BAT_HEIGHT), 
                 BAT_WIDTH, BAT_HEIGHT, BAT_COLOR);
 
@@ -210,8 +202,7 @@ class Pong extends Group {
         leftBounds = new Bounds(new Point2D(0,0), 0, GAME_HEIGHT);
         rightBounds = new Bounds(new Point2D(GAME_WIDTH, 0 ), 0, GAME_HEIGHT);
 
-        getChildren().addAll(ball, bat, scoreDisplay, gameTimer,
-        topBounds, leftBounds, rightBounds);
+        getChildren().addAll(ball, bat, scoreDisplay, gameTimer);
         startAnimation();
     }
 
@@ -283,7 +274,8 @@ class Pong extends Group {
                         rotation+=rotationValue;
                 }
 
-                if (ball.getTranslateY() + ball.getHeight() >= GAME_HEIGHT) {
+                if (ball.getTranslateY() + ball.getHeight() >= GAME_HEIGHT ||
+                        ball.getTranslateY() + ball.getHeight() < 0) {
                     ballHasFallen();
                 }
             }
@@ -346,7 +338,6 @@ class Pong extends Group {
             }
 
             public void stuckBall() {
-
                 double ballH = ball.getTranslateY() + ball.getHeight();
                 double ballW = ball.getTranslateX() + ball.getWidth();
                 double batW = bat.getTranslateX() + bat.getWidth();
@@ -366,7 +357,6 @@ class Pong extends Group {
                 points = 0;
                 speed = 0;
                 bat.setWidth(BAT_WIDTH);
-                ball.setRotate(0);
                 rotation = 0;
                 addNewScore(points);
                 gravityX = 0;
@@ -387,10 +377,9 @@ class Pong extends Group {
             }
         
             public void bounceBat(Point2D lastPos, double speed) {
-        
                 if (batVelocity == 0) {
                     gravityX = Math.cos(Math.toRadians(90));
-                    gravityY += (BASE_SPEED + speed);
+                    gravityY += (speed);
                 } else if (batVelocity < 0) {
                     gravityX = Math.cos(Math.toRadians(BASE_ANGLE));
                     gravityX += (BASE_SPEED + speed);
@@ -406,8 +395,7 @@ class Pong extends Group {
                         a.getTranslateX() + a.getWidth() >= b.getTranslateX() &&
                         a.getTranslateX() <= b.getTranslateX() + b.getWidth()) {
                     return true;
-                }
-        
+                }  
                 return false;
             }
         
@@ -415,7 +403,8 @@ class Pong extends Group {
                 scoreDisplay.update(points);
             }
         
-            public void updateFpsDescription(double frames, String description, int pos) {
+            public void updateFpsDescription(double frames, 
+                    String description, int pos) {
                 gameTimer.update(frames, description, pos);
             }
         };
@@ -441,7 +430,6 @@ public class OPongApp extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-
         Pong root = new Pong();
         scene = new Scene(root, Pong.GAME_WIDTH, Pong.GAME_HEIGHT);
         stage.setScene(scene);
@@ -453,7 +441,6 @@ public class OPongApp extends Application {
             } else if (e.getCode() == KeyCode.S) {
                 root.handleSound();
             }
-
         });
 
         stage.setTitle("PONG!");
@@ -465,5 +452,4 @@ public class OPongApp extends Application {
     public static void main(String[] args) {
         launch();
     }
-
 }
