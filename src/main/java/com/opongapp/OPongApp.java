@@ -140,18 +140,37 @@ class GameTimer extends HBox {
     }
 }
 class Ball extends Rectangle {
-    Ball(Point2D pos, int width, int height, Color color) {
+    
+    int baseVelocity;
+
+    Ball(Point2D pos, int width, int height, Color color, int v) {
         super(width, height, color);
         setTranslateX(pos.getX());
         setTranslateY(pos.getY());
+        baseVelocity = v;
     }
+
+    int getVelocity() { return baseVelocity; }
+
 }
 class Bat extends Rectangle {
+    double batVelocity;
+
     Bat(Point2D pos, int width, int height, Color color) {
         super(width, height, color);     
         setTranslateX(pos.getX());
         setTranslateY(pos.getY());
+        batVelocity = 0;
     }
+
+    void updateVelocity(Point2D lastBatPos, double elapsedTime, 
+            double initTime, double ft) {
+        batVelocity = (getTranslateX() - lastBatPos.getX()) / 
+                            ((elapsedTime + 1) - initTime);
+        batVelocity *= ft;
+    }
+
+    double getVelocity() { return this.batVelocity; }
 }
 class Bounds extends Rectangle {
     Bounds(Point2D pos, int width, int height) {
@@ -187,20 +206,21 @@ class Pong extends Group {
     boolean fpsPaneFlag = false;
 
     double gravityX = 0;
-    double gravityY = BASE_SPEED;
-    double batVelocity = 0;
+    double gravityY = 0;
     double angle = 0;
     int points = 0;    
 
     public Pong() {
         ball = new Ball(new Point2D(r.nextInt(GAME_WIDTH - BALL_SIZE),0),
-                BALL_SIZE, BALL_SIZE, BALL_COLOR);
+                BALL_SIZE, BALL_SIZE, BALL_COLOR, BASE_SPEED);
         bat = new Bat(new Point2D(0, GAME_HEIGHT - BAT_HEIGHT), 
                 BAT_WIDTH, BAT_HEIGHT, BAT_COLOR);
 
         topBounds = new Bounds(new Point2D(0,0), GAME_WIDTH, 0);
         leftBounds = new Bounds(new Point2D(0,0), 0, GAME_HEIGHT);
         rightBounds = new Bounds(new Point2D(GAME_WIDTH, 0 ), 0, GAME_HEIGHT);
+
+        gravityY = ball.getVelocity();
 
         getChildren().addAll(ball, bat, scoreDisplay, gameTimer);
         startAnimation();
@@ -256,7 +276,7 @@ class Pong extends Group {
                 batOutOfBounds();
                 
                 if(collisionDetection(ball, bat)) {
-                    updateVelocity();
+                    bat.updateVelocity(lastBatPos, elapsedTime, initTime, ft);
                     bounceBat(lastBallPos, speed);
                     gravityX *= -1;
                     gravityY *= -1;
@@ -290,14 +310,14 @@ class Pong extends Group {
 
             public boolean collisionDetection(Rectangle a, Rectangle b) {
                 if (collide(a, b)) {
-                    scoredAPoint();
+                    pointScore();
                     sound.play(true);
                     return true;
                 }
                 return false;
             }
 
-            public void scoredAPoint() {
+            public void pointScore() {
                 if (points % difficulty == 0)
                     shrinkBat();
                 
@@ -314,19 +334,13 @@ class Pong extends Group {
                 ball.setRotate(rotation);
 
                 if (bouncedBack) {
-                    rotation += batVelocity;
+                    rotation += bat.getVelocity();
 
-                    if (batVelocity < 0) 
+                    if (bat.getVelocity() < 0) 
                         ball.setRotate(rotation);
                     else
                         ball.setRotate(-rotation);
                 }
-            }
-
-            public void updateVelocity() {
-                batVelocity = (bat.getTranslateX() - lastBatPos.getX()) / 
-                            ((elapsedTime + 1) - initTime);
-                batVelocity *= ft;
             }
 
             public void shrinkBat() {
@@ -344,11 +358,10 @@ class Pong extends Group {
                 double batH = bat.getTranslateY() + bat.getHeight();
                 
                 if (ballH > bat.getTranslateY() && 
-                ballH < batH && 
+                ball.getTranslateY() < batH && 
                 ballW > bat.getTranslateX() &&
-                ballW < batW) {
-                        ball.setTranslateY(ballH - bat.getHeight());
-                        ball.setTranslateX(ballW - bat.getTranslateX());
+                ball.getTranslateX() < batW) {
+                        ball.setTranslateY(GAME_HEIGHT);
                 }
             }
 
@@ -360,7 +373,7 @@ class Pong extends Group {
                 rotation = 0;
                 addNewScore(points);
                 gravityX = 0;
-                gravityY = BASE_SPEED;
+                gravityY = ball.getVelocity();
                 ball.setTranslateX(r.nextInt(GAME_WIDTH - BALL_SIZE));
                 ball.setTranslateY(0);
 
@@ -369,23 +382,23 @@ class Pong extends Group {
             public void bounceWall(Point2D lastPos, double speed) {
                 if (lastPos.getX() > ball.getTranslateX()) {
                     gravityX = Math.cos(Math.toRadians(BASE_ANGLE));
-                    gravityX += (BASE_SPEED + speed);
+                    gravityX += (ball.getVelocity() + speed);
                 } else {
                     gravityX = -Math.cos(Math.toRadians(BASE_ANGLE));
-                    gravityX += (-BASE_SPEED + (-speed));
+                    gravityX += (-ball.getVelocity() + (-speed));
                 }
             }
         
             public void bounceBat(Point2D lastPos, double speed) {
-                if (batVelocity == 0) {
+                if (bat.getVelocity() == 0) {
                     gravityX = Math.cos(Math.toRadians(90));
                     gravityY += (speed);
-                } else if (batVelocity < 0) {
+                } else if (bat.getVelocity() < 0) {
                     gravityX = Math.cos(Math.toRadians(BASE_ANGLE));
-                    gravityX += (BASE_SPEED + speed);
+                    gravityX += (ball.getVelocity() + speed);
                 } else {
                     gravityX = -Math.cos(Math.toRadians(BASE_ANGLE));
-                    gravityX += (-BASE_SPEED + (-speed));
+                    gravityX += (-ball.getVelocity() + (-speed));
                 }
             }
         
