@@ -4,7 +4,6 @@ import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
-import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
@@ -12,12 +11,10 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -146,7 +143,6 @@ class GameTimer extends HBox {
 }
 
 class Ball extends Rectangle {
-
     int baseVelocity;
 
     Ball(Point2D pos, int width, int height, Color color, int v) {
@@ -213,7 +209,7 @@ class Pong extends Group {
     ScoreDisplay scoreDisplay = new ScoreDisplay(GAME_WIDTH, GAME_WIDTH);
     Random r = new Random();
     BinkBonkSound sound = new BinkBonkSound();
-    ArrayList<Double> fTimes = new ArrayList<Double>();
+    ArrayList<Double> fTimesAvg = new ArrayList<Double>();
     ArrayList<Double> frameAvg = new ArrayList<Double>();
 
     boolean fpsPaneFlag = false;
@@ -262,6 +258,7 @@ class Pong extends Group {
                 updateLastPos(now);
                 updateRotation();
                 updateBallPos();
+
                 stuckBall();
                 batOutOfBounds();
 
@@ -316,7 +313,7 @@ class Pong extends Group {
                 double frames = 1 / delta;
                 ft = (1 / frames) * 1000;
 
-                fTimes.add(ft);
+                fTimesAvg.add(ft);
                 frameAvg.add(frames);
 
             }
@@ -328,8 +325,8 @@ class Pong extends Group {
                     double ftAdder = 0;
                     double fAdder = 0;
 
-                    for (Double t : fTimes) {
-                        ftAdder += fTimes.get(i);
+                    for (Double t : fTimesAvg) {
+                        ftAdder += fTimesAvg.get(i);
                         i++;
                     }
 
@@ -339,17 +336,18 @@ class Pong extends Group {
                         i++;
                     }
 
-                    ftAdder /= fTimes.size();
+                    ftAdder /= fTimesAvg.size();
                     fAdder /= frameAvg.size();
 
                     updateGameTimerDescription(fAdder, ftAdder, elapsedTime);
 
-                    fTimes.clear();
+                    fTimesAvg.clear();
                     frameAvg.clear();
                 }
             }
 
-            private void updateGameTimerDescription(double frameAvg, double frameTimeAvg, double elapsedTime) {
+            private void updateGameTimerDescription(double frameAvg,
+                    double frameTimeAvg, double elapsedTime) {
                 updateFpsDescription(String.format(
                         String.format("%.2f FPS (avg)", frameAvg)), 0);
                 updateFpsDescription(String.format(
@@ -368,8 +366,8 @@ class Pong extends Group {
 
             private boolean collisionDetection(Rectangle a, Rectangle b) {
                 if (collide(a, b)) {
-                    pointScore();
                     sound.play(true);
+                    pointScore();
                     return true;
                 }
                 return false;
@@ -385,7 +383,6 @@ class Pong extends Group {
                 rotation += rotationValue;
                 addNewScore(points);
                 bounceWall(lastBallPos, speed);
-
             }
 
             private void updateRotation() {
